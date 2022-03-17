@@ -1,6 +1,6 @@
 # Cardano Time - Typescript Library
 
-`cardano-time-ts` is a small library for handling epochs and slots in Cardano.
+`cardano-time` is a small library for handling epochs and slots in Cardano.
 
 ## Build
 
