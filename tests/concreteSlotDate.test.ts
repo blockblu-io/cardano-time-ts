@@ -56,3 +56,14 @@ describe('Test "getStartTime()" of Concrete Slot Date', () => {
         expect(slotDate.getStartTime().getTime()).to.be.eq(new Date("2020-07-29T21:44:51Z").getTime());
     });
 });
+
+describe('Test "getEndTime()" of Concrete Slot Date', () => {
+    it('testGetEndTimeBeforeParamChange_mustReturnCorrectDate', () => {
+        const slotDate = new ConcreteSlotDate(207,21599, MainNetworkSetting);
+        expect(slotDate.getEndTime().getTime()).to.be.eq(new Date("2020-07-29T21:44:51Z").getTime());
+    });
+    it('testGetEndTimeAfterParamChange_mustReturnCorrectDate', () => {
+        const slotDate = new ConcreteSlotDate(208,0, MainNetworkSetting);
+        expect(slotDate.getEndTime().getTime()).to.be.eq(new Date("2020-07-29T21:44:52Z").getTime());
+    });
+});
