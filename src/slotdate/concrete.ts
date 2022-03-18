@@ -1,5 +1,5 @@
 import AbstractSlotDate from "./abstract";
-import {ChainSettingsWindows} from "../chain/chain";
+import {ChainSettingsWindows, Window} from "../chain/chain";
 
 /**
  * A concrete slot date contains all information of an abstract slot date,
@@ -22,26 +22,15 @@ class ConcreteSlotDate extends AbstractSlotDate {
      * cannot be negative or zero.
      */
     getSlotsFromGenesis(): number {
-        switch (this.setting.size()) {
-            case 0:
-                throw new Error("the chain settings for this slot date hasn't been created properly");
-            case 1:
-                const initialEpochLength = this.setting.windows[0].parameters.epochLength;
-                return super.getEpoch() * initialEpochLength + super.getSlot();
-            default:
-                break;
-        }
-        let totalSlots = 0;
-        for (let i = 0; i < this.setting.size(); i++) {
-            const s0 = this.setting.windows[i];
-            if (s0.start > super.getEpoch()) {
+        let checkpoint: Window = this.setting.windows[0];
+        for (let i = 1; i < this.setting.size(); i++) {
+            if (this.setting.windows[i].start.epoch > super.getEpoch()) {
                 break;
             }
-            const sNext = (i + 1 !== this.setting.size()) ? this.setting.windows[i + 1] : null;
-            const nextStart = Math.min(super.getEpoch(), sNext !== null ? sNext.start : Infinity);
-            totalSlots += s0.parameters.epochLength * (nextStart - s0.start);
+            checkpoint = this.setting.windows[i];
         }
-        return totalSlots + this.getSlot();
+        return checkpoint.start.totalSlots + (super.getEpoch() - checkpoint.start.epoch)
+            * checkpoint.parameters.epochLength + super.getSlot();
     }
 
     /**
@@ -50,33 +39,16 @@ class ConcreteSlotDate extends AbstractSlotDate {
      * @return the start time of the slot.
      */
     getStartTime(): Date {
-        const startTime = new Date();
-        switch (this.setting.size()) {
-            case 0:
-                throw new Error("the chain settings for this slot date hasn't been created properly");
-            case 1:
-                const sInit = this.setting.windows[0];
-                const initialEpochLength = sInit.parameters.epochLength;
-                const initialSlotLength = sInit.parameters.slotLength;
-                startTime.setTime(this.setting.genesisBlockTime.getTime() +
-                    initialSlotLength * (initialEpochLength * super.getEpoch() + super.getSlot()));
-                return startTime;
-            default:
-                break;
-        }
-        let checkpoint = this.setting.genesisBlockTime.getTime();
-        let latestSlotLength = 0;
-        for (let i = 0; i < this.setting.size(); i++) {
-            const s0 = this.setting.windows[i];
-            if (s0.start > super.getEpoch()) {
+        let checkpoint: Window = this.setting.windows[0];
+        for (let i = 1; i < this.setting.size(); i++) {
+            if (this.setting.windows[i].start.epoch > super.getEpoch()) {
                 break;
             }
-            latestSlotLength = s0.parameters.slotLength;
-            const sNext = (i + 1 !== this.setting.size()) ? this.setting.windows[i + 1] : null;
-            const nextStart = Math.min(super.getEpoch(), sNext !== null ? sNext.start : Infinity);
-            checkpoint += s0.parameters.epochLength * latestSlotLength * (nextStart - s0.start);
+            checkpoint = this.setting.windows[i];
         }
-        startTime.setTime(checkpoint + latestSlotLength * super.getSlot());
+        const startTime = new Date();
+        startTime.setTime(checkpoint.start.time.getTime() + checkpoint.parameters.slotLength * (super.getSlot()
+            + (super.getEpoch() - checkpoint.start.epoch) * checkpoint.parameters.epochLength));
         return startTime;
     }
 
