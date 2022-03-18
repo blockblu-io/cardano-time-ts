@@ -4,7 +4,18 @@ import ConcreteSlotDate from "../slotdate/concrete";
  * Chain settings is a map of values of a certain instance of the
  * Cardano blockchain.
  */
-type ChainSettings = { [key: string]: any }
+type ChainSettings = { slotLength: number, epochLength: number, [key: string]: any };
+
+/**
+ * A window key states the epoch, total slots from genesis and time from
+ * which the parameter updates of this window become active.
+ */
+type WindowKey = { epoch: number, totalSlots: number, time: Date };
+
+/**
+ *
+ */
+type Window = { start: WindowKey, parameters: ChainSettings };
 
 /**
  * Settings can change over time on the chain, and a window allows the
@@ -14,7 +25,7 @@ type ChainSettings = { [key: string]: any }
 class ChainSettingsWindows {
 
     readonly genesisBlockTime: Date
-    readonly windows: { start: number, parameters: ChainSettings }[]
+    readonly windows: Window[]
 
     /**
      * Creates a new time setting object for a certain Cardano blockchain instance
@@ -26,13 +37,7 @@ class ChainSettingsWindows {
      */
     constructor(genesisBlockTime: Date, initialSetting: ChainSettings) {
         this.genesisBlockTime = genesisBlockTime;
-        this.windows = [{start: 0, parameters: initialSetting}]
-        if (!this.hasSettingFromInception("slotLength")) {
-            throw new Error("the slot length (in ms) must be specified from the inception on")
-        }
-        if (!this.hasSettingFromInception("epochLength")) {
-            throw new Error("the epoch length (i.e. number of slots) must be specified from the inception on")
-        }
+        this.windows = [{start: {epoch: 0, totalSlots: 0, time: this.genesisBlockTime}, parameters: initialSetting}]
     }
 
     /**
@@ -83,21 +88,18 @@ class ChainSettingsWindows {
         if (time < this.genesisBlockTime) {
             throw new Error("the specified time must not be before the inception of genesis block")
         }
-        let checkpointSlotDate = new ConcreteSlotDate(0, 0, this);
-        if (this.size() > 1) {
-            for (let i = 1; i < this.size(); i++) {
-                const slotDate = new ConcreteSlotDate(this.windows[i].start, 0, this);
-                if (slotDate.getStartTime().getTime() > time.getTime()) {
-                    break;
-                }
-                checkpointSlotDate = slotDate;
+        let start: WindowKey = this.windows[0].start;
+        for (let i = 1; i < this.size(); i++) {
+            if (this.windows[i].start.time.getTime() > time.getTime()) {
+                break;
             }
+            start = this.windows[i].start;
         }
-        const relSetting = this.getSettingsFor(checkpointSlotDate.getEpoch());
-        const diffInMs = time.getTime() - checkpointSlotDate.getStartTime().getTime();
+        const relSetting = this.getSettingsFor(start.epoch);
+        const diffInMs = time.getTime() - start.time.getTime();
         const diffEpoch = Math.floor(diffInMs / (relSetting.slotLength * relSetting.epochLength));
         const diffSlot = Math.floor((diffInMs / relSetting.slotLength)) % relSetting.epochLength;
-        return new ConcreteSlotDate(checkpointSlotDate.getEpoch() + diffEpoch, diffSlot, this);
+        return new ConcreteSlotDate(start.epoch + diffEpoch, diffSlot, this);
     }
 
     /**
@@ -108,11 +110,15 @@ class ChainSettingsWindows {
      * @param setting which shall be updated in specified epoch.
      */
     addParameterUpdate(epoch: number, setting: ChainSettings): ChainSettingsWindows {
-        const maxEpoch = Math.max(...this.windows.map(e => e.start))
-        if (epoch <= maxEpoch) {
+        const w0 = this.windows[this.windows.length - 1];
+        if (epoch <= w0.start.epoch) {
             throw new Error("the setting update must strictly start after the epoch of the last update");
         }
-        this.windows.push({start: epoch, parameters: setting})
+        const diffSlots = w0.parameters.epochLength * (epoch - w0.start.epoch);
+        const totalSlots = w0.start.totalSlots + diffSlots;
+        const time = new Date();
+        time.setTime(w0.start.time.getTime() + w0.parameters.slotLength * diffSlots);
+        this.windows.push({start: {epoch, totalSlots, time}, parameters: setting})
         return this;
     }
 
@@ -124,10 +130,10 @@ class ChainSettingsWindows {
      * @return the chain settings.
      */
     getSettingsFor(epoch?: number): ChainSettings {
-        let settings: ChainSettings = {}
+        let settings: ChainSettings = {slotLength: 0, epochLength: 0}
         for (let i = 0; i < this.size(); i++) {
             const window = this.windows[i];
-            if (epoch !== undefined && epoch !== null && epoch < window.start) {
+            if (epoch !== undefined && epoch !== null && epoch < window.start.epoch) {
                 break;
             }
             settings = {...settings, ...window.parameters}
@@ -161,6 +167,7 @@ const MainNetworkSetting = new ChainSettingsWindows(new Date("2017-09-23T21:44:5
 
 export {
     ChainSettings,
+    Window,
     ChainSettingsWindows,
     MainNetworkSetting
 };
