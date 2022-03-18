@@ -96,7 +96,7 @@ class ChainSettingsWindows {
         const relSetting = this.getSettingsFor(checkpointSlotDate.getEpoch());
         const diffInMs = time.getTime() - checkpointSlotDate.getStartTime().getTime();
         const diffEpoch = Math.floor(diffInMs / (relSetting.slotLength * relSetting.epochLength));
-        const diffSlot = (diffInMs / relSetting.slotLength) % relSetting.epochLength;
+        const diffSlot = Math.floor((diffInMs / relSetting.slotLength)) % relSetting.epochLength;
         return new ConcreteSlotDate(checkpointSlotDate.getEpoch() + diffEpoch, diffSlot, this);
     }
 
