@@ -30,20 +30,20 @@ describe('Test "isAfterOrSameAsGenesis()" of TimeSetting', () => {
 
 describe('Test "getSlotDateOf()" of TimeSetting', () => {
     it('testGetSlotDateOfTimeBeforeGenesis_mustThrowError', () => {
-        assert.throws(() => MainNetworkSetting.getSlotDateOf(new Date("2017-09-23T22:44:50+01:00")));
+        assert.throws(() => MainNetworkSetting.getSlotDateOfTime(new Date("2017-09-23T22:44:50+01:00")));
     })
     it('testGetSlotDateOfTimeInFifthEpochChange_mustReturnCorrectDate', () => {
-        const slotDate = TestnetDummy.getSlotDateOf(new Date("2017-10-18T22:18:11Z"));
+        const slotDate = TestnetDummy.getSlotDateOfTime(new Date("2017-10-18T22:18:11Z"));
         expect(slotDate.getEpoch()).to.be.eq(5);
         expect(slotDate.getSlot()).to.be.eq(100);
     })
     it('testGetSlotDateOfTimeBeforeParamChange_mustReturnCorrectDate', () => {
-        const slotDate = MainNetworkSetting.getSlotDateOf(new Date("2020-07-29T21:44:31Z"));
+        const slotDate = MainNetworkSetting.getSlotDateOfTime(new Date("2020-07-29T21:44:31Z"));
         expect(slotDate.getEpoch()).to.be.eq(207);
         expect(slotDate.getSlot()).to.be.eq(21599);
     })
     it('testGetSlotDateOfTimeAfterParamChange_mustReturnCorrectDate', () => {
-        const slotDate = MainNetworkSetting.getSlotDateOf(new Date("2020-07-29T21:44:51Z"));
+        const slotDate = MainNetworkSetting.getSlotDateOfTime(new Date("2020-07-29T21:44:51Z"));
         expect(slotDate.getEpoch()).to.be.eq(208);
         expect(slotDate.getSlot()).to.be.eq(0);
     })

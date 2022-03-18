@@ -85,6 +85,12 @@ describe('Test "add()" of Concrete Slot Date', () => {
         expect(newSlotDate.getEpoch()).to.be.eq(208);
         expect(newSlotDate.getSlot()).to.be.eq(0);
     });
+    it('testAddZeroSlot_mustReturnEqualSlotDate', () => {
+        const slotDate = new ConcreteSlotDate(207,21599, MainNetworkSetting);
+        const newSlotDate = slotDate.add(0);
+        expect(newSlotDate.getEpoch()).to.be.eq(207);
+        expect(newSlotDate.getSlot()).to.be.eq(21599);
+    });
     it('testAddTwoEpochLengthsBetweenParamChange_mustReturnProperSlotDate', () => {
         const slotDate = new ConcreteSlotDate(207,0, MainNetworkSetting);
         const newSlotDate = slotDate.add(453600);

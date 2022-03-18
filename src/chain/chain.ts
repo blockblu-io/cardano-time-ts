@@ -84,7 +84,7 @@ class ChainSettingsWindows {
      * @return the concrete slot date of the passed time.
      * @throws an error, if the time is strictly before the genesis time.
      */
-    getSlotDateOf(time: Date): ConcreteSlotDate {
+    getSlotDateOfTime(time: Date): ConcreteSlotDate {
         if (time < this.genesisBlockTime) {
             throw new Error("the specified time must not be before the inception of genesis block")
         }
