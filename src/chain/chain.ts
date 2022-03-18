@@ -4,7 +4,7 @@ import ConcreteSlotDate from "../slotdate/concrete";
  * Chain settings is a map of values of a certain instance of the
  * Cardano blockchain.
  */
-type ChainSettings = { [key: string]: any }
+type ChainSettings = { slotLength: number, epochLength: number, [key: string]: any }
 
 /**
  * Settings can change over time on the chain, and a window allows the
@@ -27,12 +27,6 @@ class ChainSettingsWindows {
     constructor(genesisBlockTime: Date, initialSetting: ChainSettings) {
         this.genesisBlockTime = genesisBlockTime;
         this.windows = [{start: 0, parameters: initialSetting}]
-        if (!this.hasSettingFromInception("slotLength")) {
-            throw new Error("the slot length (in ms) must be specified from the inception on")
-        }
-        if (!this.hasSettingFromInception("epochLength")) {
-            throw new Error("the epoch length (i.e. number of slots) must be specified from the inception on")
-        }
     }
 
     /**
@@ -124,7 +118,7 @@ class ChainSettingsWindows {
      * @return the chain settings.
      */
     getSettingsFor(epoch?: number): ChainSettings {
-        let settings: ChainSettings = {}
+        let settings: ChainSettings = {slotLength: 0, epochLength: 0}
         for (let i = 0; i < this.size(); i++) {
             const window = this.windows[i];
             if (epoch !== undefined && epoch !== null && epoch < window.start) {
