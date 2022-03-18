@@ -67,3 +67,34 @@ describe('Test "getEndTime()" of Concrete Slot Date', () => {
         expect(slotDate.getEndTime().getTime()).to.be.eq(new Date("2020-07-29T21:44:52Z").getTime());
     });
 });
+
+describe('Test "add()" of Concrete Slot Date', () => {
+    it('testAddTooLargeNegativeSlotNumber_mustThrowError', () => {
+        const sL = new ConcreteSlotDate(100, 2500, MainNetworkSetting);
+        assert.throws(() => sL.add(-(sL.getSlotsFromGenesis() + 1)));
+    });
+    it('testAddNegativeSlotNumberFromGenesis_mustReturnGenesisSlotDate', () => {
+        const sL = new ConcreteSlotDate(100, 2500, MainNetworkSetting);
+        const newSlotDate = sL.add(-(sL.getSlotsFromGenesis()));
+        expect(newSlotDate.getEpoch()).to.be.eq(0);
+        expect(newSlotDate.getSlot()).to.be.eq(0);
+    });
+    it('testAddOneSlotBeforeParamChange_mustReturnProperSlotDate', () => {
+        const slotDate = new ConcreteSlotDate(207,21599, MainNetworkSetting);
+        const newSlotDate = slotDate.add(1);
+        expect(newSlotDate.getEpoch()).to.be.eq(208);
+        expect(newSlotDate.getSlot()).to.be.eq(0);
+    });
+    it('testAddTwoEpochLengthsBetweenParamChange_mustReturnProperSlotDate', () => {
+        const slotDate = new ConcreteSlotDate(207,0, MainNetworkSetting);
+        const newSlotDate = slotDate.add(453600);
+        expect(newSlotDate.getEpoch()).to.be.eq(209);
+        expect(newSlotDate.getSlot()).to.be.eq(0);
+    });
+    it('testAddMinusTwoEpochLengthsBetweenParamChange_mustReturnProperSlotDate', () => {
+        const slotDate = new ConcreteSlotDate(209,0, MainNetworkSetting);
+        const newSlotDate = slotDate.add(-453600);
+        expect(newSlotDate.getEpoch()).to.be.eq(207);
+        expect(newSlotDate.getSlot()).to.be.eq(0);
+    });
+});

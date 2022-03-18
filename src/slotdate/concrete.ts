@@ -92,6 +92,19 @@ class ConcreteSlotDate extends AbstractSlotDate {
         return endDate;
     }
 
+    /**
+     * Adds the given number of slots to this date. The number can be positive or
+     * negative. An error will be thrown, if the given slots number is a negative
+     * number that would lead to a negative epoch (i.e. the number is strictly greater
+     * than the number returned by the method {@link ConcreteSlotDate#getSlotsFromGenesis}).
+     *
+     * @param slots which shall be added to this concrete date.
+     * @return the new concrete slot date with the added slots.
+     */
+    add(slots: number): ConcreteSlotDate {
+        return new ConcreteSlotDate(this.getEpoch(), slots, this.setting);
+    }
+
 }
 
 export default ConcreteSlotDate;
