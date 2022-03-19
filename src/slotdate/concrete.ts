@@ -77,7 +77,11 @@ class ConcreteSlotDate extends AbstractSlotDate {
      * @return the new concrete slot date with the added slots.
      */
     add(slots: number): ConcreteSlotDate {
-        return new ConcreteSlotDate(this.getEpoch(), slots, this.setting);
+        const ts = this.getSlotsFromGenesis();
+        if (slots > ts) {
+            throw new Error("the specified slot number must not be greater than the slots counted from genesis");
+        }
+        return this.setting.getSlotDateFor(ts + slots);
     }
 
 }
