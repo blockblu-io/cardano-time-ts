@@ -1,6 +1,6 @@
 {
   "name": "cardano-time",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "A small Typescript library for handling time in Cardano.",
   "main": "lib/index.js",
   "module": "lib/index.esm.js",
