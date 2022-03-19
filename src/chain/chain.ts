@@ -13,7 +13,9 @@ type ChainSettings = { slotLength: number, epochLength: number, [key: string]: a
 type WindowKey = { epoch: number, totalSlots: number, time: Date };
 
 /**
- *
+ * A window has a key describing the start of an update, and a chain setting
+ * object describing the new parameters, which are active from the beginning
+ * of the specified start.
  */
 type Window = { start: WindowKey, parameters: ChainSettings };
 
@@ -77,6 +79,31 @@ class ChainSettingsWindows {
     }
 
     /**
+     * Gets the concrete slot date corresponding to the given number of total slots (counted from
+     * the genesis). The specified number must not be negative.
+     *
+     * @param totalSlots for which the slot date shall be returned. It must not be negative.
+     * @return the concrete slot date corresponding to the specified total slot number.
+     * @throws an error, if the specified number is negative.
+     */
+    getSlotDateFor(totalSlots: number): ConcreteSlotDate {
+        if (totalSlots < 0) {
+            throw new Error("the given number of total slots must not be negative.");
+        }
+        let checkpoint: Window = this.windows[0];
+        for (let i = 1; i < this.size(); i++) {
+            if (this.windows[i].start.totalSlots > totalSlots) {
+                break;
+            }
+            checkpoint = this.windows[i];
+        }
+        const diffSlots = totalSlots - checkpoint.start.totalSlots;
+        const diffEpoch = Math.floor(diffSlots / checkpoint.parameters.epochLength);
+        const slots = diffSlots % checkpoint.parameters.epochLength;
+        return new ConcreteSlotDate(checkpoint.start.epoch + diffEpoch, slots, this);
+    }
+
+    /**
      * Gets the concrete slot date for the given time. The given time
      * must not be before the genesis block.
      *
@@ -88,18 +115,18 @@ class ChainSettingsWindows {
         if (time < this.genesisBlockTime) {
             throw new Error("the specified time must not be before the inception of genesis block")
         }
-        let start: WindowKey = this.windows[0].start;
+        let checkpoint: Window = this.windows[0];
         for (let i = 1; i < this.size(); i++) {
             if (this.windows[i].start.time.getTime() > time.getTime()) {
                 break;
             }
-            start = this.windows[i].start;
+            checkpoint = this.windows[i];
         }
-        const relSetting = this.getSettingsFor(start.epoch);
-        const diffInMs = time.getTime() - start.time.getTime();
-        const diffEpoch = Math.floor(diffInMs / (relSetting.slotLength * relSetting.epochLength));
-        const diffSlot = Math.floor((diffInMs / relSetting.slotLength)) % relSetting.epochLength;
-        return new ConcreteSlotDate(start.epoch + diffEpoch, diffSlot, this);
+        const params = checkpoint.parameters;
+        const diffInMs = time.getTime() - checkpoint.start.time.getTime();
+        const diffEpoch = Math.floor(diffInMs / (params.slotLength * params.epochLength));
+        const diffSlot = Math.floor((diffInMs / params.slotLength)) % params.epochLength;
+        return new ConcreteSlotDate(checkpoint.start.epoch + diffEpoch, diffSlot, this);
     }
 
     /**

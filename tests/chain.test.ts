@@ -28,11 +28,16 @@ describe('Test "isAfterOrSameAsGenesis()" of TimeSetting', () => {
     });
 });
 
-describe('Test "getSlotDateOf()" of TimeSetting', () => {
+describe('Test "getSlotDateOfTime()" of TimeSetting', () => {
     it('testGetSlotDateOfTimeBeforeGenesis_mustThrowError', () => {
         assert.throws(() => MainNetworkSetting.getSlotDateOfTime(new Date("2017-09-23T22:44:50+01:00")));
     })
-    it('testGetSlotDateOfTimeInFifthEpochChange_mustReturnCorrectDate', () => {
+    it('testGetSlotDateOfGenesisTime_mustReturnGenesisSlotDate', () => {
+        const slotDate = TestnetDummy.getSlotDateOfTime(TestnetDummy.genesisBlockTime);
+        expect(slotDate.getEpoch()).to.be.eq(0);
+        expect(slotDate.getSlot()).to.be.eq(0);
+    })
+    it('testGetSlotDateOfTimeInFifthEpoch_mustReturnCorrectDate', () => {
         const slotDate = TestnetDummy.getSlotDateOfTime(new Date("2017-10-18T22:18:11Z"));
         expect(slotDate.getEpoch()).to.be.eq(5);
         expect(slotDate.getSlot()).to.be.eq(100);
@@ -44,6 +49,32 @@ describe('Test "getSlotDateOf()" of TimeSetting', () => {
     })
     it('testGetSlotDateOfTimeAfterParamChange_mustReturnCorrectDate', () => {
         const slotDate = MainNetworkSetting.getSlotDateOfTime(new Date("2020-07-29T21:44:51Z"));
+        expect(slotDate.getEpoch()).to.be.eq(208);
+        expect(slotDate.getSlot()).to.be.eq(0);
+    })
+});
+
+describe('Test "getSlotDateFor()" of TimeSetting', () => {
+    it('testGetSlotDateForNegativeSlots_mustThrowError', () => {
+        assert.throws(() => MainNetworkSetting.getSlotDateFor(-1));
+    })
+    it('testGetSlotDateForZeroSlots_mustReturnGenesisSlotDate', () => {
+        const slotDate = TestnetDummy.getSlotDateFor(0);
+        expect(slotDate.getEpoch()).to.be.eq(0);
+        expect(slotDate.getSlot()).to.be.eq(0);
+    })
+    it('testGetSlotDateOfSlotNumberInFifthEpoch_mustReturnCorrectSlotDate', () => {
+        const slotDate = TestnetDummy.getSlotDateFor(108100);
+        expect(slotDate.getEpoch()).to.be.eq(5);
+        expect(slotDate.getSlot()).to.be.eq(100);
+    })
+    it('testGetSlotDateForSlotNumberBeforeParamChange_mustReturnCorrectSlotDate', () => {
+        const slotDate = MainNetworkSetting.getSlotDateFor(4492799);
+        expect(slotDate.getEpoch()).to.be.eq(207);
+        expect(slotDate.getSlot()).to.be.eq(21599);
+    })
+    it('testGetSlotDateForSlotNumberAfterParamChange_mustReturnCorrectSlotDate', () => {
+        const slotDate = MainNetworkSetting.getSlotDateFor(4492800);
         expect(slotDate.getEpoch()).to.be.eq(208);
         expect(slotDate.getSlot()).to.be.eq(0);
     })
