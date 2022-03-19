@@ -84,6 +84,17 @@ class ConcreteSlotDate extends AbstractSlotDate {
         return this.setting.getSlotDateFor(ts + slots);
     }
 
+    /**
+     * Computes the difference between this date and the given date in slots.
+     *
+     * @param slotDate for which the difference shall be computed.
+     * @return the difference between this date and the given date in slots.
+     */
+    difference(slotDate: AbstractSlotDate): number {
+        const otherDate = new ConcreteSlotDate(slotDate.getEpoch(), slotDate.getSlot(), this.setting);
+        return this.getSlotsFromGenesis() - otherDate.getSlotsFromGenesis();
+    }
+
 }
 
 export default ConcreteSlotDate;

@@ -115,3 +115,14 @@ describe('Test "add()" of Concrete Slot Date', () => {
         expect(newSlotDate.getSlot()).to.be.eq(0);
     });
 });
+
+describe('Test "difference()" of Concrete Slot Date', () => {
+    it('testDifferenceSameSlotDate_mustReturnZero', () => {
+        const sL = new ConcreteSlotDate(100, 2500, MainNetworkSetting);
+        expect(sL.difference(sL)).to.be.eq(0);
+    });
+    it('testDifferenceBetweenParamChangeSlotDates_mustReturnNegOne', () => {
+        expect(new ConcreteSlotDate(207, 21599, MainNetworkSetting)
+            .difference(new ConcreteSlotDate(208,0, MainNetworkSetting))).to.be.eq(-1);
+    });
+});
