@@ -13,6 +13,9 @@ class ConcreteSlotDate extends AbstractSlotDate {
     constructor(epoch: number, slot: number, setting: ChainSettingsWindows) {
         super(epoch, slot);
         this.setting = setting;
+        if (!this.setting.isSlotOfEpochValid(slot, epoch)) {
+            throw new Error(`the construction of a slot date with slot "${slot}" in epoch "${epoch}" is invalid`);
+        }
     }
 
     /**
