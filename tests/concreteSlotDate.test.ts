@@ -12,6 +12,17 @@ describe('Test constructor of Concrete Slot Date', () => {
     it('testConstructionOfSlotDateWithNegativeSlot_mustThrowError', () => {
         assert.throws(() => new ConcreteSlotDate(1, -1, MainNetworkSetting));
     });
+    it('testConstructionOfSlotDateWithSlotOverEpochLengthBeforeParamChange_mustThrowError', () => {
+        assert.throws(() => new ConcreteSlotDate(207, 43199, MainNetworkSetting));
+    });
+    it('testConstructionOfSlotDateWithSlotOverEpochLengthAfterParamChange_mustReturnProperInstance', () => {
+        const slotDate = new ConcreteSlotDate(208,43199, MainNetworkSetting);
+        expect(slotDate.getEpoch()).to.be.eq(208);
+        expect(slotDate.getSlot()).to.be.eq(43199);
+    });
+    it('testConstructionOfSlotDateWithSlotOverEpochLengthAfterParamChange_mustThrowError', () => {
+        assert.throws(() => new ConcreteSlotDate(207, 43200, MainNetworkSetting));
+    });
     it('testConstructionOfValidSlotDate_mustReturnProperInstance', () => {
         const slotDate = new ConcreteSlotDate(322,100, MainNetworkSetting);
         expect(slotDate.getEpoch()).to.be.eq(322);
